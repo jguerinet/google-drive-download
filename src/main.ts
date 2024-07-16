@@ -66,7 +66,7 @@ async function run() : Promise<void> {
     // If we are downloading a file, parse the Id and add it to the array 
     const finalFileId = fileId ?? parseDriveIdFromURL(true, fileUrl)
     if (!finalFileId) {
-      core.setFailed('Action could not determine file id')
+      core.setFailed('Unknown file id')
       return
     }
     core.info(`Downloading file with Id ${fileId}`)
