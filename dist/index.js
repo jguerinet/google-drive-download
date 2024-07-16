@@ -62,7 +62,7 @@ function parseDriveIdFromURL(isFile, path) {
     return driveId;
 }
 function getGoogleDriveUrl(driveId = undefined) {
-    return `https://www.googleapis.com/drive/v3/files/${driveId}`;
+    return `https://www.googleapis.com/drive/v3/files/${driveId !== null && driveId !== void 0 ? driveId : ""}`;
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -86,7 +86,6 @@ function run() {
             core.setFailed('No path provided to action');
             return;
         }
-        core.info(`Params provided: fileId ${fileId}, fileUrl ${fileUrl}, folderId ${folderId}, folderUrl ${folderUrl}`);
         const isFile = fileId || fileUrl;
         const fileIds = [];
         if (isFile) {
@@ -118,7 +117,7 @@ function run() {
                     pageSize: 1000
                 },
             };
-            core.info(`Searching folder with Id ${fileId}`);
+            core.info(`Searching folder with Id ${finalFolderId}`);
             const response = yield axios_1.default.get(url, options);
             if (response.status != 200) {
                 core.setFailed(`Failed to list files in folder from Google drive: ${response.status}`);
