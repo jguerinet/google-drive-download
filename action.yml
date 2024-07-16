@@ -8,6 +8,10 @@ inputs:
     description: 'ID of the file in Google Drive'
   file-url:
     description: 'URL to the share link for the file on Google Drive'
+  folder-id: 
+    description: 'ID of the folder in Google Drive'
+  folder-url: 
+    description: "Shareable URL for the folder on Google Drive"
   path:
     description: 'Path at which the file will be saved'
     required: true
