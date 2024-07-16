@@ -45,21 +45,24 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const fs = __importStar(__nccwpck_require__(7147));
 const core = __importStar(__nccwpck_require__(2186));
 const axios_1 = __importDefault(__nccwpck_require__(8757));
-function parseFileIdFromURL(path) {
+function parseDriveIdFromURL(isFile, path) {
     if (!path) {
         return undefined;
     }
     // Ensure the file path matches a Google Drive path
-    const prefix = '/file/d/';
-    const suffix = '/view';
+    const prefix = isFile ? '/file/d/' : '/drive/folders/';
+    const suffix = isFile ? '/view' : '';
     const urlPath = new URL(path).pathname;
     if (!urlPath.startsWith(prefix) || !urlPath.endsWith(suffix)) {
         core.error(`file-url path seems ill-formed: ${path})`);
         return undefined;
     }
-    // Strip the prefix/suffix to get the file id
-    const fileId = urlPath.slice(prefix.length, -suffix.length);
-    return fileId;
+    // Strip the prefix/suffix to get the Drive id
+    const driveId = urlPath.slice(prefix.length, -suffix.length);
+    return driveId;
+}
+function getGoogleDriveUrl(driveId = undefined) {
+    return `https://www.googleapis.com/drive/v3/files/${driveId}`;
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -69,9 +72,13 @@ function run() {
             core.setFailed('No access token provided to action');
             return;
         }
-        const fileId = core.getInput('file-id') || parseFileIdFromURL(core.getInput('file-url'));
-        if (!fileId) {
-            core.setFailed('Action could not determine file id');
+        const fileId = core.getInput('file-id');
+        const fileUrl = core.getInput('file-url');
+        const folderId = core.getInput('folder-id');
+        const folderUrl = core.getInput('folder-url');
+        if (!fileId && !fileUrl && !folderId && !folderUrl) {
+            // If none of them are defined, error out
+            core.setFailed('You must define one of following four inputs: fileId, fileUrl, folderId, folderUrl');
             return;
         }
         const path = core.getInput('path');
@@ -79,8 +86,72 @@ function run() {
             core.setFailed('No path provided to action');
             return;
         }
+        core.info(`Params provided: fileId ${fileId}, fileUrl ${fileUrl}, folderId ${folderId}, folderUrl ${folderUrl}`);
+        const isFile = fileId || fileUrl;
+        const fileIds = [];
+        if (isFile) {
+            // If we are downloading a file, parse the Id and add it to the array 
+            const finalFileId = fileId !== null && fileId !== void 0 ? fileId : parseDriveIdFromURL(true, fileUrl);
+            if (!finalFileId) {
+                core.setFailed('Unknown file id');
+                return;
+            }
+            core.info(`Downloading file with Id ${fileId}`);
+            fileIds.push({ name: path, id: finalFileId });
+        }
+        else {
+            // If we are downloading a folder, parse the folder Id
+            const finalFolderId = folderId !== null && folderId !== void 0 ? folderId : parseDriveIdFromURL(false, folderUrl);
+            if (!finalFolderId) {
+                core.setFailed('Action could not determine folder id');
+                return;
+            }
+            // Query Google Drive to get the list of files in the folder
+            const url = getGoogleDriveUrl();
+            const options = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                params: {
+                    q: `${finalFolderId} in parents`,
+                    supportsAllDrives: true,
+                    pageSize: 1000
+                },
+            };
+            core.info(`Searching folder with Id ${fileId}`);
+            const response = yield axios_1.default.get(url, options);
+            if (response.status != 200) {
+                core.setFailed(`Failed to list files in folder from Google drive: ${response.status}`);
+                return;
+            }
+            // Add the file Ids to the array of files to download
+            response.data.files.forEach(file => {
+                if (file.mimeType === 'application/vnd.google-apps.folder') {
+                    core.warning(`Folder with name ${file.name} found, skipping as nested folders are not supported`);
+                    return;
+                }
+                core.info(`Adding file ${file.name} to list of files to download`);
+                fileIds.push({ name: file.name, id: file.id });
+            });
+        }
+        if (fileIds.length === 0) {
+            core.setFailed("Failed to find any files to download");
+        }
+        else if (fileIds.length === 1) {
+            // Only 1 file to download
+            yield downloadFile(token, fileIds[0]);
+        }
+        else {
+            // Create a folder at the path given 
+            fs.mkdirSync(path);
+            fileIds.forEach((fileId) => __awaiter(this, void 0, void 0, function* () { return yield downloadFile(token, fileId); }));
+        }
+    });
+}
+function downloadFile(token, file) {
+    return __awaiter(this, void 0, void 0, function* () {
         // Query Google Drive
-        const fileUrl = `https://www.googleapis.com/drive/v3/files/${fileId}`;
+        const url = getGoogleDriveUrl(file.id);
         const options = {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -92,25 +163,25 @@ function run() {
             },
             responseType: 'stream',
         };
-        const response = yield axios_1.default.get(fileUrl, options);
+        const response = yield axios_1.default.get(url, options);
         if (response.status != 200) {
             core.setFailed(`Failed to get file from Google drive: ${response.status}`);
             return;
         }
-        core.saveState('path', path);
         // Write file out
-        const file = fs.createWriteStream(path);
-        response.data.pipe(file);
+        core.saveState('path', file.name);
+        const downloadedFile = fs.createWriteStream(file.name);
+        response.data.pipe(downloadedFile);
     });
 }
 function post() {
     return __awaiter(this, void 0, void 0, function* () {
         // Remove the downloaded file
-        const path = core.getState('path');
-        if (path && fs.existsSync(path)) {
-            fs.rmSync(path);
-            console.log(`Removed downloaded file ${path}`);
-        }
+        // const path = core.getState('path')
+        // if (path && fs.existsSync(path)) {
+        //   fs.rmSync(path)
+        //   console.log(`Removed downloaded file ${path}`)
+        // }
     });
 }
 if (!core.getState('isPost')) {
