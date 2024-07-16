@@ -97,7 +97,12 @@ async function run() : Promise<void> {
     }
 
     // Add the file Ids to the array of files to download
-    response.data.files.forEach(file => fileIds.push({name: file.name, id: file.id}));
+    response.data.files.forEach(file => {
+      if (file.mimeType === 'application/vnd.google-apps.folder') {
+        core.warning(`Folder with name ${file.name} found, skipping`)
+      }
+      fileIds.push({name: file.name, id: file.id})
+    });
   }
 
   if (fileIds.length === 0) {
