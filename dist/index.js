@@ -131,7 +131,7 @@ function run() {
                     return;
                 }
                 core.info(`Adding file ${file.name} to list of files to download`);
-                fileIds.push({ name: file.name, id: file.id });
+                fileIds.push({ name: path + "/" + file.name, id: file.id });
             });
         }
         if (fileIds.length === 0) {
