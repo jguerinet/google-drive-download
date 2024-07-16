@@ -85,7 +85,7 @@ async function run() : Promise<void> {
         Authorization: `Bearer ${token}`,
       },
       params: {
-        q: `${finalFolderId} in parents`,
+        q: `'${finalFolderId}' in parents`,
         supportsAllDrives: true,
         pageSize: 1000
       },
