@@ -99,7 +99,7 @@ async function run() : Promise<void> {
     }
 
     // Add the file Ids to the array of files to download
-    core.info(`Response: ${JSON.stringify(response)}`)
+    core.info(`Response: ${JSON.stringify(response.data)}`)
     response.data.files.forEach(file => {
       if (file.mimeType === 'application/vnd.google-apps.folder') {
         core.warning(`Folder with name ${file.name} found, skipping as nested folders are not supported`)
