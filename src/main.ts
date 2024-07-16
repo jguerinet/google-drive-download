@@ -68,6 +68,7 @@ async function run() : Promise<void> {
       core.setFailed('Action could not determine file id')
       return
     }
+    core.info(`Downloading file with Id ${fileId}`)
     fileIds.push({name: path, id: finalFileId})
   } else {
     // If we are downloading a folder, parse the folder Id
@@ -90,6 +91,7 @@ async function run() : Promise<void> {
       },
     }
 
+    core.info(`Searching folder with Id ${fileId}`)
     const response = await axios.get(url, options)
     if (response.status != 200) {
       core.setFailed(`Failed to list files in folder from Google drive: ${response.status}`)
@@ -100,7 +102,9 @@ async function run() : Promise<void> {
     response.data.files.forEach(file => {
       if (file.mimeType === 'application/vnd.google-apps.folder') {
         core.warning(`Folder with name ${file.name} found, skipping as nested folders are not supported`)
+        return
       }
+      core.info(`Adding file ${file.name} to list of files to download`)
       fileIds.push({name: file.name, id: file.id})
     });
   }
