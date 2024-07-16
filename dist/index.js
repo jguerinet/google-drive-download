@@ -124,6 +124,7 @@ function run() {
                 return;
             }
             // Add the file Ids to the array of files to download
+            core.info(`Response: ${JSON.stringify(response)}`);
             response.data.files.forEach(file => {
                 if (file.mimeType === 'application/vnd.google-apps.folder') {
                     core.warning(`Folder with name ${file.name} found, skipping as nested folders are not supported`);
