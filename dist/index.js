@@ -113,6 +113,7 @@ function run() {
                 },
                 params: {
                     q: `'${finalFolderId}' in parents`,
+                    includeItemsFromAllDrives: true,
                     supportsAllDrives: true,
                     pageSize: 1000
                 },
