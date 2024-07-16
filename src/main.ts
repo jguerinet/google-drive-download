@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as core from '@actions/core'
-import axios, { AxiosResponse, ResponseType } from 'axios'
+import axios, { ResponseType } from 'axios'
 
 type FileMetadata = {
   name: string, 
