@@ -125,7 +125,7 @@ async function run() : Promise<void> {
 }
 
 async function downloadFile(token: string, file: FileMetadata) {
-  core.info(`Downloading file ${file.name} with Id ${file.id}`)
+  core.info(`Downloading file with Id ${file.id} to ${file.name}`)
   // Query Google Drive
   const url = getGoogleDriveUrl(file.id)
 
@@ -146,23 +146,12 @@ async function downloadFile(token: string, file: FileMetadata) {
     core.setFailed(`Failed to get file from Google drive: ${response.status}`)
     return
   }
-  
-  // Write file out
-  core.saveState('path', file.name)
 
   const downloadedFile = fs.createWriteStream(file.name)
   response.data.pipe(downloadedFile)
 }
 
-async function post() : Promise<void> {
-
-  // Remove the downloaded file
-  // const path = core.getState('path')
-  // if (path && fs.existsSync(path)) {
-  //   fs.rmSync(path)
-  //   console.log(`Removed downloaded file ${path}`)
-  // }
-}
+async function post() : Promise<void> {}
 
 if (!core.getState('isPost')) {
   run()

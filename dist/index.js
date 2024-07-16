@@ -151,7 +151,7 @@ function run() {
 }
 function downloadFile(token, file) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.info(`Downloading file ${file.name} with Id ${file.id}`);
+        core.info(`Downloading file with Id ${file.id} to ${file.name}`);
         // Query Google Drive
         const url = getGoogleDriveUrl(file.id);
         const options = {
@@ -170,21 +170,12 @@ function downloadFile(token, file) {
             core.setFailed(`Failed to get file from Google drive: ${response.status}`);
             return;
         }
-        // Write file out
-        core.saveState('path', file.name);
         const downloadedFile = fs.createWriteStream(file.name);
         response.data.pipe(downloadedFile);
     });
 }
 function post() {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Remove the downloaded file
-        // const path = core.getState('path')
-        // if (path && fs.existsSync(path)) {
-        //   fs.rmSync(path)
-        //   console.log(`Removed downloaded file ${path}`)
-        // }
-    });
+    return __awaiter(this, void 0, void 0, function* () { });
 }
 if (!core.getState('isPost')) {
     run();
