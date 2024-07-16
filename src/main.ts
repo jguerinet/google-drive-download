@@ -28,7 +28,7 @@ function parseDriveIdFromURL(isFile: boolean, path?: string) : string | undefine
 }
 
 function getGoogleDriveUrl(driveId: string | undefined = undefined): string {
-  return `https://www.googleapis.com/drive/v3/files/${driveId}`
+  return `https://www.googleapis.com/drive/v3/files/${driveId ?? ""}`
 }
 
 async function run() : Promise<void> {
@@ -58,7 +58,6 @@ async function run() : Promise<void> {
     return
   }
 
-  core.info(`Params provided: fileId ${fileId}, fileUrl ${fileUrl}, folderId ${folderId}, folderUrl ${folderUrl}`)
   const isFile = fileId || fileUrl
   const fileIds: FileMetadata[] = []
 
@@ -92,7 +91,7 @@ async function run() : Promise<void> {
       },
     }
 
-    core.info(`Searching folder with Id ${fileId}`)
+    core.info(`Searching folder with Id ${finalFolderId}`)
     const response = await axios.get(url, options)
     if (response.status != 200) {
       core.setFailed(`Failed to list files in folder from Google drive: ${response.status}`)
