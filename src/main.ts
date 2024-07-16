@@ -68,7 +68,7 @@ async function run() : Promise<void> {
       core.setFailed('Unknown file id')
       return
     }
-    core.info(`Downloading file with Id ${fileId}`)
+    core.info(`Searching for file with Id ${fileId}`)
     fileIds.push({name: path, id: finalFileId})
   } else {
     // If we are downloading a folder, parse the folder Id
@@ -100,7 +100,6 @@ async function run() : Promise<void> {
     }
 
     // Add the file Ids to the array of files to download
-    core.info(`Response: ${JSON.stringify(response.data)}`)
     response.data.files.forEach(file => {
       if (file.mimeType === 'application/vnd.google-apps.folder') {
         core.warning(`Folder with name ${file.name} found, skipping as nested folders are not supported`)
@@ -121,9 +120,12 @@ async function run() : Promise<void> {
     fs.mkdirSync(path)
     fileIds.forEach(async fileId => await downloadFile(token, fileId))
   }
+
+  core.info("Successfully completed")
 }
 
 async function downloadFile(token: string, file: FileMetadata) {
+  core.info(`Downloading file ${file.name} with Id ${file.id}`)
   // Query Google Drive
   const url = getGoogleDriveUrl(file.id)
 

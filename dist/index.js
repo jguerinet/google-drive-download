@@ -95,7 +95,7 @@ function run() {
                 core.setFailed('Unknown file id');
                 return;
             }
-            core.info(`Downloading file with Id ${fileId}`);
+            core.info(`Searching for file with Id ${fileId}`);
             fileIds.push({ name: path, id: finalFileId });
         }
         else {
@@ -125,7 +125,6 @@ function run() {
                 return;
             }
             // Add the file Ids to the array of files to download
-            core.info(`Response: ${JSON.stringify(response.data)}`);
             response.data.files.forEach(file => {
                 if (file.mimeType === 'application/vnd.google-apps.folder') {
                     core.warning(`Folder with name ${file.name} found, skipping as nested folders are not supported`);
@@ -147,10 +146,12 @@ function run() {
             fs.mkdirSync(path);
             fileIds.forEach((fileId) => __awaiter(this, void 0, void 0, function* () { return yield downloadFile(token, fileId); }));
         }
+        core.info("Successfully completed");
     });
 }
 function downloadFile(token, file) {
     return __awaiter(this, void 0, void 0, function* () {
+        core.info(`Downloading file ${file.name} with Id ${file.id}`);
         // Query Google Drive
         const url = getGoogleDriveUrl(file.id);
         const options = {
