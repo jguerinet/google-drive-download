@@ -58,6 +58,7 @@ async function run() : Promise<void> {
     return
   }
 
+  core.info(`Params provided: fileId ${fileId}, fileUrl ${fileUrl}, folderId ${folderId}, folderUrl ${folderUrl}`)
   const isFile = fileId || fileUrl
   const fileIds: FileMetadata[] = []
 
